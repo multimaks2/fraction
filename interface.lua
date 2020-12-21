@@ -23,19 +23,39 @@ function findWindow(unpackData)
         table.insert(Lbase, {value[key]})
         local row = guiGridListAddRow(GridHeals)
         guiGridListSetItemText(GridHeals, row, 2,'  '..value[2], false, false)
+
+
         for i,v in ipairs(rangs) do
             if i == value[4] then
                 guiGridListSetItemText(GridHeals, row, 3,'  ['..v..']', false, false)
             end
+
+
+
+
             if not value[3] == false then
                 local dat1 = getElementData(value[3],"ID") or "-"
                 guiGridListSetItemText(GridHeals, row, 1,'('..dat1..')', false, false)
             else
                 guiGridListSetItemText(GridHeals, row, 1,'  -', false, false)
             end
+
+
             if not value[3] == false then
-                local dat2 = getElementData(value[3],"smena-Heal") or "error"
-                if dat2 == "сдал" then
+                guiGridListSetItemText(GridHeals, row, 5,'  online', false, false)
+                guiGridListSetItemColor ( GridHeals, row, 5, 0,255,0 )
+            else
+                guiGridListSetItemText(GridHeals, row, 5,'  offline', false, false)
+                guiGridListSetItemColor ( GridHeals, row, 5, 150,150,150 )
+                guiGridListSetItemText(GridHeals, row,4,"  сдал(а)", false, false)
+                guiGridListSetItemColor ( GridHeals, row, 4, 255,0,0 )
+            end
+
+            if not value[3] == false then
+
+                
+                local dat2 = getElementData(value[3],"smena-Heal") or "сдал(а)"
+                if dat2 == "сдал(а)" then
                     guiGridListSetItemText(GridHeals, row,4,'  '..dat2, false, false)
                     guiGridListSetItemColor ( GridHeals, row, 4, 255,0,0 )
 
@@ -43,17 +63,17 @@ function findWindow(unpackData)
                     guiGridListSetItemText(GridHeals, row,4,'  '..dat2, false, false)
                     guiGridListSetItemColor ( GridHeals, row, 4, 0,255,0 )
                 end
+
+
             end
-            if not value[3] == false then
-                guiGridListSetItemText(GridHeals, row, 5,'  online', false, false)
-                guiGridListSetItemColor ( GridHeals, row, 5, 0,255,0 )
-            else
-                guiGridListSetItemText(GridHeals, row,4,"  сдал", false, false)
-                guiGridListSetItemColor ( GridHeals, row, 4, 255,0,0 )
-                guiGridListSetItemText(GridHeals, row, 5,'  offline', false, false)
-                guiGridListSetItemColor ( GridHeals, row, 5, 150,150,150 )
-            end
+
+
+
+
         end
+
+
+
     end
 
 
@@ -101,7 +121,7 @@ function jobmedic(hitPlayer)
         showCursor(true)
         main = guiCreateWindow(x/2-(m3/2),y/2-(m4/2),m3,m4, "Выберите действие", false)
 
-        if getElementData(getLocalPlayer(),'smena-Heal') == "сдал" then
+        if getElementData(getLocalPlayer(),'smena-Heal') == "сдал(а)" then
             btns = guiCreateButton(10, 90, 130, 25, "Заступить на смену", false, main)
             guiSetFont(btns, "default-bold-small")
             guiSetProperty(btns, "NormalTextColour", "FF00defd")
@@ -134,7 +154,7 @@ end
 
 function getJobState(user)
     local data = getElementData(getLocalPlayer(),'smena-Heal') or nil
-    if data == 'сдал' then
+    if data == 'сдал(а)' then
         return false
     elseif data == 'работает' then
         return true
@@ -244,7 +264,7 @@ addEventHandler("onClientGUIClick",resourceRoot,clickOff)
 --------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------
 local px = x/x
-fonts = {
+fontik = {
     text = guiCreateFont("font.ttf", 8*px, false, "antialiased"),
 
 }
@@ -283,8 +303,8 @@ function invites()
     guiSetProperty(nFrac, "NormalTextColour", "FFED1010")
 
 
-    guiSetFont(aFrac, fonts.text)
-    guiSetFont(nFrac, fonts.text)
+    guiSetFont(aFrac, fontik.text)
+    guiSetFont(nFrac, fontik.text)
 
 
     guiSetInputMode("no_binds")
@@ -302,12 +322,16 @@ function Adest()
     guiSetInputMode("allow_binds")
     showCursor ( oppositeState )
 end
-
+addEventHandler("onClientResourceStop",root,Adest)
 
 function iClick(button,state)
     if button == "left" and state == "up" then
-        if source == aFrac then
+        if source == nFrac then
             --------------
+            Adest()
+            -----------------------------------------------------------------
+        elseif source == aFrac then
+            -----------------------------------------------------------------
             if ThePlayer then
             if  pipPlayer == nil  then return end
             local tostr = getElementData(getLocalPlayer(),"ID") or nil
@@ -316,14 +340,10 @@ function iClick(button,state)
             local encodedString = teaEncode(tostr, 14882020666777 )
             triggerServerEvent ( "hachukaPizza", resourceRoot, encodedString,ThePlayer)
             Adest()
-            -----------------------------------------------------------------
-        else if source == nFrac then
-            -----------------------------------------------------------------
-            Adest()
             --------------
         end
         end
     end
 end
-end
+
 addEventHandler("onClientGUIClick",resourceRoot,iClick)

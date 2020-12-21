@@ -15,7 +15,7 @@ DGS = exports.dgs
 fonts = {
     text = dxCreateFont("font.ttf", 10*px, false, "antialiased"),
     mtext = dxCreateFont("font.ttf", 8*px, false, "antialiased"),
-    Rtext = dxCreateFont("font.ttf", 95*px, false, "antialiased"),
+    Rtext = dxCreateFont("font.ttf", 55*px, false, "antialiased"),
 }
 
 local r1,r2 = 400,125
@@ -32,22 +32,24 @@ createMarkers()
 
 addEventHandler ( "onClientRender", root,
     function ( )
+if not ddebug == true then return end
         for k,v in ipairs(SmerTpositions) do
             local x,y,z = v[1],v[2],v[3]+2
             local x1,y1,z1 = v[1],v[2],v[3]+0.5
             local px,py,pz = getElementPosition(getLocalPlayer())
             local distance = getDistanceBetweenPoints3D ( x,y,z,px,py,pz )
             local Mx, My, Mz = getCameraMatrix()
-            if ( getDistanceBetweenPoints3D ( x,y,z, getElementPosition ( localPlayer ) ) ) < 154 then
+            if ( getDistanceBetweenPoints3D ( x,y,z, getElementPosition ( localPlayer ) ) ) < 75 then
                 local coords = { getScreenFromWorldPosition ( x,y,z+1 ) }
                 if coords[1] and coords[2] then
 
                     if processLineOfSight(x1,y1,z1, Mx, My, Mz, true, false, false, true, false, true) then break end
                     local dist = math.ceil(getDistanceBetweenPoints3D(px,py,pz,v[1],v[2],v[3]))
-                    dxDrawText ("id markers: "..k.."\nРастояние: "..dist.."м", coords[1], coords[2], coords[1], coords[2], tocolor(255,255,255), math.min ( 0.4*(15/distance)/1.4,1), fonts.Rtext,"center" )
+                    dxDrawText ("Маркер спавна: "..k.."\nРастояние: "..dist.."м", coords[1], coords[2], coords[1], coords[2], tocolor(255,255,255), math.min ( 0.4*(15/distance)/1,1), fonts.Rtext,"center" )
                 end
             end
         end
+
     end)
 
 

@@ -80,13 +80,17 @@ addCommandHandler("gov",ceGovkaFrac)
 
 
 
--- function printMsgOuSheet(msg)
--- for i,v in ipairs(getElementsByType("player")) do
--- if getElementData(v,"frac") then 
--- outputChatBox(msg,v,65, 105, 225,true)
--- end
+function printMsgOuSheet(msg,ThePlayer)
+for i,v in ipairs(getElementsByType("player")) do
+if getElementData(v,"frac") then 
 
--- end
+if  v == ThePlayer then return end
+outputChatBox(msg,root,65, 105, 225,true)
+
+end
+end
+
+end
 
 
 
@@ -115,7 +119,7 @@ function obChat(ThePlayer, cmd, ...)
                     if idrang <= 7 then
                         warnmsg(ThePlayer,'Вам запрещено сюда писать (с '..okRang..' ранга)') return end
 
-                            printMsgOuSheet("#ff0000[ Общий чат ["..FracGlobalNameChat.."] ["..rang.."] "..getPlayerName(ThePlayer).."["..getElementData(ThePlayer,"ID").."]: "..text.." ]")
+                            printMsgOuSheet("#ff0000[ Общий чат ["..FracGlobalNameChat.."] ["..rang.."] "..getPlayerName(ThePlayer).."["..getElementData(ThePlayer,"ID").."]: "..text.." ]",ThePlayer)
 
                 end
             end

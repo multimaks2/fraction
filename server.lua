@@ -38,7 +38,7 @@ addEventHandler("onPlayerLogin", root,
                 local result = dbPoll(q,-1)
                 if result then
                     setElementData(source,'frac',"CGB")
-                    setElementData(source,'smena-Heal',"сдал")
+                    setElementData(source,'smena-Heal',"сдал(а)")
                     triggerClientEvent ( source, "okeyJob", source, source )
                 end
                 -------------------------------------------------------------------------------------
@@ -133,17 +133,17 @@ function inveteUserId(ThePlayer,cmd,id,FRAC)
     local accName = getAccountName (accountplayer)
     if isObjectInACLGroup ("user."..accName, aclGetGroup ( "Heal" ) ) then
 
-       if id == nil or id == 0 then warnmsg(ThePlayer,w0) return end
-       if FRAC == nil or FRAC == '' or FRAC == ' ' then warnmsg(ThePlayer,w1) return end
-       if FRAC == 'heal' then
-       local userID = getPlayerFromID (id)
-       
-       if userID then
-       triggerClientEvent ( userID, "pipUser", userID, true , ThePlayer)
-       end
+        if id == nil or id == 0 then warnmsg(ThePlayer,w0) return end
+        if FRAC == nil or FRAC == '' or FRAC == ' ' then warnmsg(ThePlayer,w1) return end
+        if FRAC == 'heal' then
+            local userID = getPlayerFromID (id)
 
-      end
-   end      
+            if userID then
+                triggerClientEvent ( userID, "pipUser", userID, true , ThePlayer)
+            end
+
+        end
+    end
 end
 addCommandHandler("invite",inveteUserId)
 
@@ -164,6 +164,11 @@ function inviteFracAccept(data,attacer)
         dbFree(q)
         if #result == 0 then
             dbQuery(conn,"INSERT INTO CGB (login,fracName,serial,oldJoin,rang) VALUES (?,?,?,?,?) ",login,name,serial,getInviteData(),1) --Отправляет данные в базу данных в первый раз
+            outputChatBox('#7ef542Вы приняли во фракцию игрока - '..getPlayerName(theUserDecID)..'',attacer,255,255,0,true)
+            outputChatBox('Приказ от '..getInviteData()..' || Исполнитель: '..getPlayerName(attacer)..'',attacer,255,255,0)        
+                
+            outputChatBox('Вас приняли во фракцию '..FracGlobalNameChat..'',theUserDecID,0,255,0)
+            outputChatBox('Приказ от '..getInviteData()..' || Исполнитель: '..getPlayerName(attacer)..'',theUserDecID,255,255,0)
 
         elseif #result <= 1 then
             outputChatBox("Игрок уже состоит в данной фракции!",attacer,255,0,0)
@@ -176,14 +181,53 @@ addEvent( "hachukaPizza", true )
 addEventHandler( "hachukaPizza", resourceRoot, inviteFracAccept )
 
 
+function checkUpdRung(idR,user)
 
+    local idrang = getRang(user)
+
+
+    for i,v in ipairs(rangs) do
+        if i == idrang then
+            rang =v
+        end
+    end
+    if (tonumber(idR) == tonumber(idrang)) then return false
+    end
+    if (tonumber(idR) > tonumber(idrang)) then
+        local output = "#00ff2aВас повысили в звании до: ["..rang.."]"
+        return output
+    elseif (tonumber(idR) < tonumber(idrang))  then
+        local output = "#fcba03Вас понизили в звании до: ["..rang.."]"
+        return output
+    end
+
+end
 
 
 function giveRunk(ThePlayer,cmd,id,idR)
-if id == nil or id == 0 then warnmsg(ThePlayer,w0) return end
+    if id == nil or id == 0 then warnmsg(ThePlayer,w0) return end
+    if idR == nil  then warnmsg(ThePlayer,'Укажите ранг игрока! ') warnmsg(ThePlayer,'Диапазон: 1-10') return end
+    if tonumber(idR) < 1 or tonumber(idR) > 10 then warnmsg(ThePlayer,"Вы написали недопустимое значение!") warnmsg(ThePlayer,'Диапазон: 1-10') return end
+
+    local theUserDecID,ggName = getPlayerFromID(tonumber(id))
+    local login = getAccountName ( getPlayerAccount ( theUserDecID ) )
+    local q = dbQuery(conn, "SELECT * FROM CGB WHERE login=?",login)  --Отправляет все значения игрока с логином, определяемым как "login"
+    local result = dbPoll(q,-1)
+    dbFree(q)
+    if #result == 0 then
+        warnmsg(ThePlayer,"Ранг игрока не найден,примите его во фракцию чтобы вы могли взаимодействовать с его данными")
+    elseif #result <= 1 then
+        local d1 = checkUpdRung(idR,getPlayerFromID(tonumber(id)))
+        dbExec(conn,"UPDATE CGB SET rang=? WHERE login=?",tonumber(idR),login)
+        if not d1 == false then outputChatBox(d1,theUserDecID,75,225,25,true) end
+
+    end
 
 end
 addCommandHandler("giverung",giveRunk)
+
+
+
 
 
 
@@ -198,7 +242,7 @@ function uninvite(ThePlayer,cmd,id)
         if #result == 0 then
             warnmsg(userID,w4)
         elseif #result <= 1 then
-            print("Удаляем")
+
             -- dbExec(conn,"UPDATE CGB SET fracName=?,serial=?,rang=? WHERE login=?",name,serial,11,login)
             outputChatBox('Вас исключили из фракции ЦГБ.',userID,255,0,0)
             outputChatBox('Приказ от '..getInviteData()..' || Исполнитель: '..getPlayerName(ThePlayer)..'',userID,255,255,0)
@@ -308,7 +352,7 @@ function openConcentFind(ThePlayer)
                     local d2 = row['fracName']
                     local d3 = getPlayerFromLog(row['login'])
                     local d4 = tonumber((row['rang']) or 1)
-                    -- local d5 = getElementData(ThePlayer,'smena-Heal') or 'сдал'
+                    -- local d5 = getElementData(ThePlayer,'smena-Heal') or 'сдал(а)'
                     table.insert(tables, {d1,d2,d3,d4})
                 end
                 ------
@@ -338,7 +382,7 @@ addEventHandler( "goJob", resourceRoot, goJob )
 
 
 function stopJob(user)
-    setElementData(user,'smena-Heal','сдал')
+    setElementData(user,'smena-Heal','сдал(а)')
 end
 addEvent( "stopJob", true )
 addEventHandler( "stopJob", resourceRoot, stopJob )
@@ -375,44 +419,32 @@ local theTikGap = 5
 local getLastTick = getTickCount()
 
 function obrCall(ThePlayer,cmd,id, ...)
+if id == nil or id == 0 then warnmsg(ThePlayer,w0) return end
     if (getTickCount ( ) - getLastTick < theTikGap*1000) then
         outputChatBox('Нельзя так часто использовать эту команду',ThePlayer,255,0,0)
         return
     end
+if getPlayerFromID(tonumber(id)) == ThePlayer then warnmsg(ThePlayer,"Нельзя самому себе продавать лекарство") return end
+if not getPlayerFromID(tonumber(id))  then warnmsg(ThePlayer,"Игрок не найден") return end
     if getElementData(ThePlayer,'smena-Heal') == 'работает' then
         local x,y,z = getElementPosition(ThePlayer)
         local xa,ya,za = getElementPosition(getPlayerFromID(tonumber(id)))
         if getDistanceBetweenPoints3D(x,y,z,xa,ya,za) >= 2 then warnmsg(ThePlayer,'Вы слишком далеко от игрока,подойдите по ближе') return end
         if id == nil or id == 0 then warnmsg(ThePlayer,w0) return end
         local message = table.concat({...}, " ")
-        if message == nil or message == '' or message == ' ' then  warnmsg(ThePlayer,'Укажите препарат') return end
-        print(message)
+if ... == nil or ... == '' or ... == ' ' then warnmsg(ThePlayer,"Укажите препарат") return end    
+
+
         local theName = getPlayerName(ThePlayer)
         local userId = getPlayerFromID(tonumber(id))
         triggerClientEvent ( userId, "MsgWinHeal", userId,userId,message,getPlayerName(ThePlayer))
+
+
     else
         warnmsg(ThePlayer,'Вам необходимо начать смену')
     end
     getLastTick = getTickCount()
 end
-
-
--- function serverivent(ThePlayer,cmd,id, ... )
---     if getElementData(ThePlayer,'smena-Heal') == 'работает' then
---         local x,y,z = getElementPosition(ThePlayer)
---         local xa,ya,za = getElementPosition(getPlayerFromID(tonumber(id)))
---         if getDistanceBetweenPoints3D(x,y,z,xa,ya,za) >= 2 then warnmsg(ThePlayer,'Вы слишком далеко от игрока,подойдите по ближе') return end
---         if id == nil or id == 0 then warnmsg(ThePlayer,w0) return end
---         local message = table.concat({...}, " ")
---         if message == nil or message == '' or message == ' ' then  warnmsg(ThePlayer,'Укажите препарат') return end
---         print(message)
---         local theName = getPlayerName(ThePlayer)
---         local userId = getPlayerFromID(tonumber(id))
---         triggerClientEvent ( userId, "MsgWinHeal", userId,userId,message,getPlayerName(ThePlayer))
---     else
---         warnmsg(ThePlayer,'Вам необходимо начать смену')
---     end
--- end
 addCommandHandler ( "heal", obrCall )
 
 
