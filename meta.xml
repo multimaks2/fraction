@@ -1,0 +1,19 @@
+<meta>
+    <file src="font.ttf" cache = "false" />
+    <script src="Shared.lua" type="shared"/>
+	<script src="interface.lua" type="client" compile="1"/>
+	<script src="server.lua" type="server"/>
+	<script src="markerJob.lua" type="client" />
+	<script src="spawnManager.lua" type="server" />
+    
+
+	<script src="callServ.lua" type="server" />
+	<script src="callCl.lua" type="client" />
+	
+	<script src="CRespawnWastedUser.lua" type="client" />
+	<script src="SRespawnWastedUser.lua" type="server" />
+
+	<script src="chatFrac.lua" type="server" />
+	<script src="payDay.lua" type="server" />
+<oop>true</oop>
+</meta>
