@@ -92,7 +92,7 @@ function obtabotka(user)
                 end
             end
         end)
-    outputChatBox(''..math.ceil(x)..','..math.ceil(y)..','..math.ceil(z)..'')
+    -- outputChatBox(''..math.ceil(x)..','..math.ceil(y)..','..math.ceil(z)..'')
     table.insert(baza,{login,math.ceil(x),math.ceil(y),math.ceil(z)})
     triggerClientEvent ( user, "updaterCall",user,login,math.ceil(x),math.ceil(y),math.ceil(z))
 end

@@ -132,6 +132,8 @@ function inveteUserId(ThePlayer,cmd,id,FRAC)
     local accountplayer = getPlayerAccount(ThePlayer)
     local accName = getAccountName (accountplayer)
     if isObjectInACLGroup ("user."..accName, aclGetGroup ( "Heal" ) ) then
+ if getRang(ThePlayer) == false then return end
+
 
         if id == nil or id == 0 then warnmsg(ThePlayer,w0) return end
         if FRAC == nil or FRAC == '' or FRAC == ' ' then warnmsg(ThePlayer,w1) return end
@@ -159,11 +161,15 @@ function inviteFracAccept(data,attacer)
         local serial = getPlayerSerial (theUserDecID)
         local name = getPlayerName(theUserDecID)
 
+if not isObjectInACLGroup ("user."..getAccountName (getPlayerAccount(theUserDecID)), aclGetGroup ( "Heal" ) ) then
+aclGroupAddObject(aclGetGroup("Heal"), "user."..login)
+end
+
         local q = dbQuery(conn, "SELECT * FROM CGB WHERE login=?",login)  --Отправляет все значения игрока с логином, определяемым как "login"
         local result = dbPoll(q,-1)
         dbFree(q)
         if #result == 0 then
-            dbQuery(conn,"INSERT INTO CGB (login,fracName,serial,oldJoin,rang) VALUES (?,?,?,?,?) ",login,name,serial,getInviteData(),1) --Отправляет данные в базу данных в первый раз
+            dbExec(conn,"INSERT INTO CGB (login,fracName,serial,oldJoin,rang) VALUES (?,?,?,?,?) ",login,name,serial,getInviteData(),1)--Отправляет данные в базу данных в первый раз
             outputChatBox('#7ef542Вы приняли во фракцию игрока - '..getPlayerName(theUserDecID)..'',attacer,255,255,0,true)
             outputChatBox('Приказ от '..getInviteData()..' || Исполнитель: '..getPlayerName(attacer)..'',attacer,255,255,0)        
                 
@@ -181,33 +187,43 @@ addEvent( "hachukaPizza", true )
 addEventHandler( "hachukaPizza", resourceRoot, inviteFracAccept )
 
 
+
 function checkUpdRung(idR,user)
 
     local idrang = getRang(user)
 
-
-    for i,v in ipairs(rangs) do
+    for i,v in pairs(rangs) do
         if i == idrang then
             rang =v
         end
     end
-    if (tonumber(idR) == tonumber(idrang)) then return false
-    end
-    if (tonumber(idR) > tonumber(idrang)) then
-        local output = "#00ff2aВас повысили в звании до: ["..rang.."]"
+
+
+
+
+        local output = "#00ff2aВаc назначили на звание: ["..rang.."]"
         return output
-    elseif (tonumber(idR) < tonumber(idrang))  then
-        local output = "#fcba03Вас понизили в звании до: ["..rang.."]"
-        return output
-    end
+
+
+
+    -- if (tonumber(idR) == tonumber(idrang)) then return false
+    -- end
 
 end
 
 
 function giveRunk(ThePlayer,cmd,id,idR)
+    local accountplayer = getPlayerAccount(ThePlayer)
+    local accName = getAccountName (accountplayer)
+    if isObjectInACLGroup ("user."..accName, aclGetGroup ( "Heal" ) ) then
+
+
+
     if id == nil or id == 0 then warnmsg(ThePlayer,w0) return end
     if idR == nil  then warnmsg(ThePlayer,'Укажите ранг игрока! ') warnmsg(ThePlayer,'Диапазон: 1-10') return end
     if tonumber(idR) < 1 or tonumber(idR) > 10 then warnmsg(ThePlayer,"Вы написали недопустимое значение!") warnmsg(ThePlayer,'Диапазон: 1-10') return end
+
+    -- if  (tonumber(uper) < getRang(ThePlayer)) then warnmsg(ThePlayer,'Повышать в звании может лишь человек с рангом '..uper..'+ ') return end
 
     local theUserDecID,ggName = getPlayerFromID(tonumber(id))
     local login = getAccountName ( getPlayerAccount ( theUserDecID ) )
@@ -217,12 +233,15 @@ function giveRunk(ThePlayer,cmd,id,idR)
     if #result == 0 then
         warnmsg(ThePlayer,"Ранг игрока не найден,примите его во фракцию чтобы вы могли взаимодействовать с его данными")
     elseif #result <= 1 then
-        local d1 = checkUpdRung(idR,getPlayerFromID(tonumber(id)))
+
+
         dbExec(conn,"UPDATE CGB SET rang=? WHERE login=?",tonumber(idR),login)
+
+
+        local d1 = checkUpdRung(idR,getPlayerFromID(tonumber(id)))
         if not d1 == false then outputChatBox(d1,theUserDecID,75,225,25,true) end
-
     end
-
+end
 end
 addCommandHandler("giverung",giveRunk)
 
@@ -232,6 +251,11 @@ addCommandHandler("giverung",giveRunk)
 
 
 function uninvite(ThePlayer,cmd,id)
+    local accountplayer = getPlayerAccount(ThePlayer)
+    local accName = getAccountName (accountplayer)
+    if isObjectInACLGroup ("user."..accName, aclGetGroup ( "Heal" ) ) then
+
+
     if id == nil or id == 0 then warnmsg(ThePlayer,w0) return end
     local userID = getPlayerFromID (id)
     if not userID == false then
@@ -242,14 +266,14 @@ function uninvite(ThePlayer,cmd,id)
         if #result == 0 then
             warnmsg(userID,w4)
         elseif #result <= 1 then
-
-            -- dbExec(conn,"UPDATE CGB SET fracName=?,serial=?,rang=? WHERE login=?",name,serial,11,login)
             outputChatBox('Вас исключили из фракции ЦГБ.',userID,255,0,0)
             outputChatBox('Приказ от '..getInviteData()..' || Исполнитель: '..getPlayerName(ThePlayer)..'',userID,255,255,0)
             dbExec(conn,"DELETE FROM CGB WHERE login=?", login)
+            aclGroupRemoveObject (aclGetGroup ( "Heal" ),"user."..getAccountName(getPlayerAccount(userID)))
             outputChatBox('')
         end
     end
+end
 end
 addCommandHandler("medleave",uninvite)
 
@@ -258,7 +282,7 @@ addCommandHandler("medleave",uninvite)
 function stleader(ThePlayer, cmd, id,comanda)
     local accountplayer = getPlayerAccount(ThePlayer)
     local accName = getAccountName (accountplayer)
-    if isObjectInACLGroup ("user."..accName, aclGetGroup ( "Heal" ) ) then
+    if isObjectInACLGroup ("user."..accName, aclGetGroup ( "Admin_7_lvl" ) ) then
 
         -------------------------------------------------------------------------------------------------------------------------------
         if id == nil or id == 0 then warnmsg(ThePlayer,w0) return end
@@ -276,6 +300,10 @@ function stleader(ThePlayer, cmd, id,comanda)
                 -----------------------------------------
                 -- -- -- -- -- -- --
 
+if not isObjectInACLGroup ("user."..login, aclGetGroup ( "Heal" ) ) then
+aclGroupAddObject(aclGetGroup("Heal"), "user."..login)
+end
+
                 --------------------
                 local q = dbQuery(conn, "SELECT * FROM CGB WHERE login=?",login)  --Отправляет все значения игрока с логином, определяемым как "login"
                 local result = dbPoll(q,-1)
@@ -285,7 +313,7 @@ function stleader(ThePlayer, cmd, id,comanda)
                     outputChatBox("Вас назначили лидером фракции ЦГБ",userID,0,255,0)
                     outputChatBox('Приказ от '..getInviteData()..' || Исполнитель: '..getPlayerName(ThePlayer)..'',userID,255,255,0)
 
-                    dbQuery(conn,"INSERT INTO CGB (login,fracName,serial,rang,oldJoin) VALUES (?,?,?,?,?) ",login,name,serial,11,getInviteData()) --Отправляет данные в базу данных в первый раз
+                    dbExec(conn,"INSERT INTO CGB (login,fracName,serial,rang,oldJoin) VALUES (?,?,?,?,?) ",login,name,serial,11,getInviteData()) --Отправляет данные в базу данных в первый раз
                     -- outputDebugString("dbQuery! "..login..","..name..","..serial.." ")
                 elseif #result <= 1 then
                     outputChatBox("Вы назначили лидером фракции ЦГБ - "..getPlayerName(userID).." ",ThePlayer,255,25,100)
